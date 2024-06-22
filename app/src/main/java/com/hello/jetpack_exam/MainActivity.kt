@@ -55,8 +55,7 @@ class MainActivity : ComponentActivity() {
                     .padding(20.dp),
                 isFavorite = isFavorite,
             ) {
-                favorite ->
-                isFavorite = !isFavorite
+                favorite ->  isFavorite = !isFavorite
             }
         }
     }
@@ -95,8 +94,6 @@ fun ImageCard(
                         tint = Color.White
                     )
                 }
-
-
             }
         }
     }
