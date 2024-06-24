@@ -10,6 +10,7 @@
 package com.hello.jetpack_exam
 
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -17,6 +18,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -31,6 +33,9 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
@@ -38,13 +43,16 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -59,39 +67,68 @@ class MainActivity : ComponentActivity() {
                 mutableStateOf(false)
             }
 
-            val scaffoldState = rememberScaffoldState()
+            val state = remember { SnackbarHostState() }.also {
+                SnackbarHost(hostState = it,
+                    //modifier = Modifier.align(Alignment.BottomCenter)
+                )
+            }
+            val scope = rememberCoroutineScope()
+            val keyboardController = LocalSoftwareKeyboardController.current
+
             Scaffold(
                 modifier = Modifier.fillMaxSize(),
-
             ) { innerPadding ->
-                ImageCard(
-                    modifier = Modifier
-                        .fillMaxWidth(1.0f)
-                        .padding(8.dp)
-                        .padding(innerPadding),
-                    isFavorite = isFavorite,
-
-                ) { favorite ->
-                    isFavorite = !isFavorite
-                }
-
-                Box(
-                    modifier = Modifier.fillMaxWidth(),
+                Column(
+                    Modifier.fillMaxSize()
+                        .height(200.dp)
                 ) {
-                    Column(
+                    ImageCard(
                         modifier = Modifier
-                            .fillMaxWidth(),
-                        verticalArrangement = Arrangement.Center,
-                        horizontalAlignment = Alignment.CenterHorizontally,
+                            .fillMaxWidth(1.0f)
+                            .padding(8.dp)
+                            .padding(innerPadding),
+                        isFavorite = isFavorite,
+                    ) { favorite ->
+                        isFavorite = !isFavorite
+                    }
+                }
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .fillMaxHeight()
+                ) {
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(200.dp)
+                            .padding(innerPadding),
+                        shape = RoundedCornerShape(8.dp),
                     ) {
-                        TextField(
-                            //value = textValue.value,
-                            //onValueChange = { textValue.value = it }
-                            value = text,
-                            onValueChange = setValue
-                        )
-                        Button(onClick = { }) {
-                            Text("클릭")
+                        Column(
+                            Modifier.fillMaxWidth(),
+                            verticalArrangement = Arrangement.Center,
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                        ) {
+                            TextField(
+                                //value = textValue.value,
+                                //onValueChange = { textValue.value = it }
+                                value = text,
+                                onValueChange = setValue
+                            )
+                            Button(onClick = {
+                                keyboardController?.hide()
+                                Log.d("LHK", "show snackbar before")
+                                scope.launch {
+                                    state
+                                        .showSnackbar(
+                                            "Hello #{text}",
+                                            duration = SnackbarDuration.Short
+                                        )
+                                    Log.d("LHK", "show snackbar")
+                                }
+                            }) {
+                                Text("Show Snackbar")
+                            }
                         }
                     }
                 }
@@ -106,7 +143,6 @@ fun ImageCard(
     isFavorite: Boolean,
     onTabFavorite: (Boolean) -> Unit
 ) {
-
     Card(
         modifier = modifier,
         shape = RoundedCornerShape(8.dp),
