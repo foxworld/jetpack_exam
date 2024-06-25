@@ -18,7 +18,6 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -60,77 +59,20 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             //val textValue = remember {
-            val (text, setValue) = remember {
-                mutableStateOf("")
-            }
             var isFavorite by rememberSaveable {
                 mutableStateOf(false)
             }
-
-            val state = remember { SnackbarHostState() }.also {
-                SnackbarHost(hostState = it,
-                    //modifier = Modifier.align(Alignment.BottomCenter)
-                )
-            }
-            val scope = rememberCoroutineScope()
-            val keyboardController = LocalSoftwareKeyboardController.current
-
             Scaffold(
                 modifier = Modifier.fillMaxSize(),
             ) { innerPadding ->
-                Column(
-                    Modifier.fillMaxSize()
-                        .height(200.dp)
-                ) {
-                    ImageCard(
-                        modifier = Modifier
-                            .fillMaxWidth(1.0f)
-                            .padding(8.dp)
-                            .padding(innerPadding),
-                        isFavorite = isFavorite,
-                    ) { favorite ->
-                        isFavorite = !isFavorite
-                    }
-                }
-                Column(
+                ImageCard(
                     modifier = Modifier
-                        .fillMaxSize()
-                        .fillMaxHeight()
-                ) {
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(200.dp)
-                            .padding(innerPadding),
-                        shape = RoundedCornerShape(8.dp),
-                    ) {
-                        Column(
-                            Modifier.fillMaxWidth(),
-                            verticalArrangement = Arrangement.Center,
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                        ) {
-                            TextField(
-                                //value = textValue.value,
-                                //onValueChange = { textValue.value = it }
-                                value = text,
-                                onValueChange = setValue
-                            )
-                            Button(onClick = {
-                                keyboardController?.hide()
-                                Log.d("LHK", "show snackbar before")
-                                scope.launch {
-                                    state
-                                        .showSnackbar(
-                                            "Hello #{text}",
-                                            duration = SnackbarDuration.Short
-                                        )
-                                    Log.d("LHK", "show snackbar")
-                                }
-                            }) {
-                                Text("Show Snackbar")
-                            }
-                        }
-                    }
+                        .fillMaxWidth(1.0f)
+                        .padding(8.dp)
+                        .padding(innerPadding),
+                    isFavorite = isFavorite,
+                ) { favorite ->
+                    isFavorite = !isFavorite
                 }
             }
         }
@@ -143,31 +85,79 @@ fun ImageCard(
     isFavorite: Boolean,
     onTabFavorite: (Boolean) -> Unit
 ) {
-    Card(
-        modifier = modifier,
-        shape = RoundedCornerShape(8.dp),
-        elevation = CardDefaults.elevatedCardElevation(defaultElevation = 6.dp)
+    Column(
+        Modifier.fillMaxSize(),
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Box(
-            modifier = Modifier.height(200.dp),
+        Card(
+            modifier = modifier,
+            shape = RoundedCornerShape(8.dp),
+            //elevation = CardDefaults.elevatedCardElevation(defaultElevation = 6.dp)
         ) {
-            Image(
-                painter = painterResource(id = R.drawable.flower),
-                contentDescription = "flower",
-                contentScale = ContentScale.Crop
-            )
             Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.TopEnd,
+                modifier = Modifier.height(200.dp),
             ) {
-                IconButton(onClick = {
-                    onTabFavorite.invoke(isFavorite)
+                Image(
+                    painter = painterResource(id = R.drawable.flower),
+                    contentDescription = "flower",
+                    contentScale = ContentScale.Crop
+                )
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.TopEnd,
+                ) {
+                    IconButton(onClick = {
+                        onTabFavorite.invoke(isFavorite)
+                    }) {
+                        Icon(
+                            imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                            contentDescription = "favorite",
+                            tint = Color.White
+                        )
+                    }
+                }
+            }
+        }
+
+        val (text, setValue) = remember {
+            mutableStateOf("")
+        }
+        val state = remember { SnackbarHostState() }.also {
+            SnackbarHost(hostState = it,
+                modifier = Modifier.align(Alignment.CenterHorizontally)
+            )
+        }
+        val scope = rememberCoroutineScope()
+        val keyboardController = LocalSoftwareKeyboardController.current
+        Card(
+            modifier = Modifier,
+            shape = RoundedCornerShape(8.dp),
+            //elevation = CardDefaults.elevatedCardElevation(defaultElevation = 6.dp)
+        ) {
+            Column(
+                Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.Center,
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                TextField(
+                    //value = textValue.value,
+                    //onValueChange = { textValue.value = it }
+                    value = text,
+                    onValueChange = setValue
+                )
+                Button(onClick = {
+                    keyboardController?.hide()
+                    Log.d("LHK", "show snackbar before")
+                    scope.launch {
+                        state
+                            .showSnackbar(
+                                "Hello ${text}",
+                                duration = SnackbarDuration.Short
+                            )
+                        Log.d("LHK", "show snackbar")
+                    }
                 }) {
-                    Icon(
-                        imageVector = if(isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
-                        contentDescription = "favorite",
-                        tint = Color.White
-                    )
+                    Text("Show Snackbar")
                 }
             }
         }
